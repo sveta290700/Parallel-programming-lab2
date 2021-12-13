@@ -31,7 +31,7 @@ double randomize(unsigned* V, unsigned N, unsigned min, unsigned max) {
     double sum = 0;
     std::vector<double> partial(T);
     std::vector<std::thread> threads;
-    unsigned seed = 0;
+    unsigned seed = std::time(0);
     for (std::size_t t = 0; t < T; ++t)
         threads.emplace_back([t, T, V, N, seed, &partial, multipliers, min, max]() {
         auto At = multipliers.back();
