@@ -18,12 +18,6 @@ std::vector<unsigned> pow_A(unsigned T) {
     return result;
 }
 
-#ifdef _MSC_VER
-constexpr std::size_t CACHE_LINE = std::hardware_destructive_interference_size;
-#else
-#define CACHE_LINE 64
-#endif
-
 double randomize(unsigned* V, unsigned N, unsigned min, unsigned max) {
 
     unsigned T = get_num_threads();
@@ -36,7 +30,7 @@ double randomize(unsigned* V, unsigned N, unsigned min, unsigned max) {
         threads.emplace_back([t, T, V, N, seed, &partial, multipliers, min, max]() {
         auto At = multipliers.back();
         unsigned off = (B * (At - 1) / (A - 1)) % C;
-            unsigned x = ((seed * multipliers[t]) % C + (B * (multipliers[t] - 1) / (A - 1)) % C) % C;
+            unsigned x = ((seed * multipliers[t]) % C + (B % C * (multipliers[t] - 1) / (A - 1)) % C) % C;
             double acc = 0;
             for (size_t i = t; i < N; i += T) {
                 V[i] = x % (max - min) + min;
