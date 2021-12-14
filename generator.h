@@ -18,12 +18,23 @@ std::vector<unsigned> pow_A(unsigned T) {
     return result;
 }
 
+#ifdef _MSC_VER
+constexpr std::size_t CACHE_LINE = std::hardware_destructive_interference_size;
+#else
+#define CACHE_LINE 64
+#endif
+
+typedef struct element_t_
+{
+	alignas(CACHE_LINE) double value;
+} element_t;
+
 double randomize(unsigned* V, unsigned N, unsigned min, unsigned max) {
 
     unsigned T = get_num_threads();
     std::vector<unsigned> multipliers = pow_A(T);
     double sum = 0;
-    std::vector<double> partial(T);
+    std::vector<element_t> partial(T, element_t{0.0});
     std::vector<std::thread> threads;
     unsigned seed = std::time(0);
     for (std::size_t t = 0; t < T; ++t)
@@ -37,12 +48,12 @@ double randomize(unsigned* V, unsigned N, unsigned min, unsigned max) {
                 acc += V[i];
                 x = (x * At) % C + off % C;
             }
-            partial[t] = acc;
+            partial[t].value = acc;
             });
     for (auto& thread:threads)
         thread.join();
     for (unsigned i = 0; i < T; ++i)
-        sum += partial[i];
+        sum += partial[i].value;
     return sum / N;
 }
 
